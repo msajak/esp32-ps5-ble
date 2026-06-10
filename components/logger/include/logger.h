@@ -29,7 +29,7 @@ public:
 
     RingBufferLogger();
 
-    void write_entry(const char* message, size_t length);
+    void write_entry(const char* message, size_t length, bool truncated);
 
 private:
     struct LogEntry {

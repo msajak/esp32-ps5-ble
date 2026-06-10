@@ -32,73 +32,110 @@ static esp_err_t send_keyboard_input_report(uint16_t conn_id, const uint8_t *rep
 // Report ID 2: Consumer control — media keys (2 bytes)
 // Report ID 3: System control — power/sleep (1 byte)
 // Report ID 4: Mouse — buttons + X/Y + scroll (4 bytes)
-static const uint8_t hid_report_map[] = {
-    // ---- Keyboard (Report ID 1) ----
-    0x05, 0x01, 0x09, 0x06, 0xA1, 0x01,
-    0x85, 0x01,
-    0x05, 0x07, 0x19, 0xE0, 0x29, 0xE7,
-    0x15, 0x00, 0x25, 0x01, 0x75, 0x01, 0x95, 0x08, 0x81, 0x02,
-    0x95, 0x01, 0x75, 0x08, 0x81, 0x01,
-    0x95, 0x05, 0x75, 0x01, 0x05, 0x08, 0x19, 0x01, 0x29, 0x05, 0x91, 0x02,
-    0x95, 0x01, 0x75, 0x03, 0x91, 0x01,
-    0x95, 0x06, 0x75, 0x08, 0x15, 0x00, 0x25, 0x65,
-    0x05, 0x07, 0x19, 0x00, 0x29, 0x65, 0x81, 0x00,
-    0xC0,
-    // ---- Consumer Control (Report ID 2) — media keys ----
-    0x05, 0x0C,        // Usage Page (Consumer)
-    0x09, 0x01,        // Usage (Consumer Control)
-    0xA1, 0x01,        // Collection (Application)
-    0x85, 0x02,        //   Report ID (2)
-    0x15, 0x00,        //   Logical Minimum (0)
-    0x26, 0xFF, 0x03,  //   Logical Maximum (1023)
-    0x19, 0x00,        //   Usage Minimum (0)
-    0x2A, 0xFF, 0x03,  //   Usage Maximum (1023)
-    0x75, 0x10,        //   Report Size (16)
-    0x95, 0x01,        //   Report Count (1)
-    0x81, 0x00,        //   Input (Data, Array)
-    0xC0,              // End Collection
-    // ---- System Control (Report ID 3) — power/sleep ----
-    0x05, 0x01,        // Usage Page (Generic Desktop)
-    0x09, 0x80,        // Usage (System Control)
-    0xA1, 0x01,        // Collection (Application)
-    0x85, 0x03,        //   Report ID (3)
-    0x15, 0x00,        //   Logical Minimum (0)
-    0x26, 0xFF, 0x00,  //   Logical Maximum (255)
-    0x19, 0x00,        //   Usage Minimum (0)
-    0x29, 0xFF,        //   Usage Maximum (255)
-    0x75, 0x08,        //   Report Size (8)
-    0x95, 0x01,        //   Report Count (1)
-    0x81, 0x00,        //   Input (Data, Array)
-    0xC0,              // End Collection
-    // ---- Mouse (Report ID 4) — buttons + X/Y movement + scroll wheel ----
-    0x05, 0x01,        // Usage Page (Generic Desktop)
-    0x09, 0x02,        // Usage (Mouse)
-    0xA1, 0x01,        // Collection (Application)
-    0x85, 0x04,        //   Report ID (4)
-    0x09, 0x01,        //   Usage (Pointer)
-    0xA1, 0x00,        //   Collection (Physical)
-    0x05, 0x09,        //     Usage Page (Button)
-    0x19, 0x01,        //     Usage Minimum (Button 1 — Left)
-    0x29, 0x03,        //     Usage Maximum (Button 3 — Middle)
-    0x15, 0x00,        //     Logical Minimum (0)
-    0x25, 0x01,        //     Logical Maximum (1)
-    0x75, 0x01,        //     Report Size (1)
-    0x95, 0x03,        //     Report Count (3)
-    0x81, 0x02,        //     Input (Data, Variable, Absolute)
-    0x75, 0x05,        //     Report Size (5) — padding
-    0x95, 0x01,        //     Report Count (1)
-    0x81, 0x01,        //     Input (Constant) — padding to byte boundary
-    0x05, 0x01,        //     Usage Page (Generic Desktop)
-    0x09, 0x30,        //     Usage (X)
-    0x09, 0x31,        //     Usage (Y)
-    0x09, 0x38,        //     Usage (Wheel)
-    0x15, 0x81,        //     Logical Minimum (-127)
-    0x25, 0x7F,        //     Logical Maximum (127)
-    0x75, 0x08,        //     Report Size (8)
-    0x95, 0x03,        //     Report Count (3)
-    0x81, 0x06,        //     Input (Data, Variable, Relative)
-    0xC0,              //   End Collection (Physical)
-    0xC0               // End Collection (Application)
+// static const uint8_t hid_report_map[] = {
+//     // ---- Keyboard (Report ID 1) ----
+//     0x05, 0x01, 0x09, 0x06, 0xA1, 0x01,
+//     0x85, 0x01,
+//     0x05, 0x07, 0x19, 0xE0, 0x29, 0xE7,
+//     0x15, 0x00, 0x25, 0x01, 0x75, 0x01, 0x95, 0x08, 0x81, 0x02,
+//     0x95, 0x01, 0x75, 0x08, 0x81, 0x01,
+//     0x95, 0x05, 0x75, 0x01, 0x05, 0x08, 0x19, 0x01, 0x29, 0x05, 0x91, 0x02,
+//     0x95, 0x01, 0x75, 0x03, 0x91, 0x01,
+//     0x95, 0x06, 0x75, 0x08, 0x15, 0x00, 0x25, 0x65,
+//     0x05, 0x07, 0x19, 0x00, 0x29, 0x65, 0x81, 0x00,
+//     0xC0,
+//     // ---- Consumer Control (Report ID 2) — media keys ----
+//     0x05, 0x0C,        // Usage Page (Consumer)
+//     0x09, 0x01,        // Usage (Consumer Control)
+//     0xA1, 0x01,        // Collection (Application)
+//     0x85, 0x02,        //   Report ID (2)
+//     0x15, 0x00,        //   Logical Minimum (0)
+//     0x26, 0xFF, 0x03,  //   Logical Maximum (1023)
+//     0x19, 0x00,        //   Usage Minimum (0)
+//     0x2A, 0xFF, 0x03,  //   Usage Maximum (1023)
+//     0x75, 0x10,        //   Report Size (16)
+//     0x95, 0x01,        //   Report Count (1)
+//     0x81, 0x00,        //   Input (Data, Array)
+//     0xC0,              // End Collection
+//     // ---- System Control (Report ID 3) — power/sleep ----
+//     0x05, 0x01,        // Usage Page (Generic Desktop)
+//     0x09, 0x80,        // Usage (System Control)
+//     0xA1, 0x01,        // Collection (Application)
+//     0x85, 0x03,        //   Report ID (3)
+//     0x15, 0x00,        //   Logical Minimum (0)
+//     0x26, 0xFF, 0x00,  //   Logical Maximum (255)
+//     0x19, 0x00,        //   Usage Minimum (0)
+//     0x29, 0xFF,        //   Usage Maximum (255)
+//     0x75, 0x08,        //   Report Size (8)
+//     0x95, 0x01,        //   Report Count (1)
+//     0x81, 0x00,        //   Input (Data, Array)
+//     0xC0,              // End Collection
+//     // ---- Mouse (Report ID 4) — buttons + X/Y movement + scroll wheel ----
+//     0x05, 0x01,        // Usage Page (Generic Desktop)
+//     0x09, 0x02,        // Usage (Mouse)
+//     0xA1, 0x01,        // Collection (Application)
+//     0x85, 0x04,        //   Report ID (4)
+//     0x09, 0x01,        //   Usage (Pointer)
+//     0xA1, 0x00,        //   Collection (Physical)
+//     0x05, 0x09,        //     Usage Page (Button)
+//     0x19, 0x01,        //     Usage Minimum (Button 1 — Left)
+//     0x29, 0x03,        //     Usage Maximum (Button 3 — Middle)
+//     0x15, 0x00,        //     Logical Minimum (0)
+//     0x25, 0x01,        //     Logical Maximum (1)
+//     0x75, 0x01,        //     Report Size (1)
+//     0x95, 0x03,        //     Report Count (3)
+//     0x81, 0x02,        //     Input (Data, Variable, Absolute)
+//     0x75, 0x05,        //     Report Size (5) — padding
+//     0x95, 0x01,        //     Report Count (1)
+//     0x81, 0x01,        //     Input (Constant) — padding to byte boundary
+//     0x05, 0x01,        //     Usage Page (Generic Desktop)
+//     0x09, 0x30,        //     Usage (X)
+//     0x09, 0x31,        //     Usage (Y)
+//     0x09, 0x38,        //     Usage (Wheel)
+//     0x15, 0x81,        //     Logical Minimum (-127)
+//     0x25, 0x7F,        //     Logical Maximum (127)
+//     0x75, 0x08,        //     Report Size (8)
+//     0x95, 0x03,        //     Report Count (3)
+//     0x81, 0x06,        //     Input (Data, Variable, Relative)
+//     0xC0,              //   End Collection (Physical)
+//     0xC0               // End Collection (Application)
+// };
+
+// A clean, strict 101-key standard keyboard descriptor map
+const uint8_t hid_report_map[] = {
+    0x05, 0x01,  // Usage Page (Generic Desktop)
+    0x09, 0x06,  // Usage (Keyboard)
+    0xA1, 0x01,  // Collection (Application)
+    0x85, 0x01,  //   Report ID (1)
+    0x05, 0x07,  //   Usage Page (Keyboard/Keypad)
+    0x19, 0xE0,  //   Usage Minimum (Keyboard LeftControl)
+    0x29, 0xE7,  //   Usage Maximum (Keyboard Right GUI)
+    0x15, 0x00,  //   Logical Minimum (0)
+    0x25, 0x01,  //   Logical Maximum (1)
+    0x75, 0x01,  //   Report Size (1)
+    0x95, 0x08,  //   Report Count (8)
+    0x81, 0x02,  //   Input (Data, Variable, Absolute) - Modifier Byte
+    0x95, 0x01,  //   Report Count (1)
+    0x75, 0x08,  //   Report Size (8)
+    0x81, 0x03,  //   Input (Constant, Variable, Absolute) - Reserved Byte
+    0x95, 0x05,  //   Report Count (5)
+    0x75, 0x01,  //   Report Size (1)
+    0x05, 0x08,  //   Usage Page (LEDs)
+    0x19, 0x01,  //   Usage Minimum (Num Lock)
+    0x29, 0x05,  //   Usage Maximum (Kana)
+    0x91, 0x02,  //   Output (Data, Variable, Absolute) - LED Indicators
+    0x95, 0x01,  //   Report Count (1)
+    0x75, 0x03,  //   Report Size (3)
+    0x91, 0x03,  //   Output (Constant, Variable, Absolute) - LED Padding
+    0x95, 0x06,  //   Report Count (6)
+    0x75, 0x08,  //   Report Size (8)
+    0x15, 0x00,  //   Logical Minimum (0)
+    0x25, 0x65,  //   Logical Maximum (101)
+    0x05, 0x07,  //   Usage Page (Keyboard/Keypad)
+    0x19, 0x00,  //   Usage Minimum (Reserved)
+    0x29, 0x65,  //   Usage Maximum (Keyboard Application)
+    0x81, 0x00,  //   Input (Data, Array, Absolute) - 6 Key Rollover Array
+    0xC0         // End Collection
 };
 
 // Keyboard layout ASCII/Unicode tables live in keyboard_layouts.cpp.
@@ -110,7 +147,6 @@ static uint8_t raw_adv_data[] = {
     0x03, 0x03, 0x12, 0x18,     // Complete List of 16-bit UUIDs: HID (0x1812)
     0x03, 0x19, 0xC1, 0x03      // Appearance: HID Keyboard (0x03C1)
 };
-
 
 static esp_ble_adv_params_t adv_params = {
     .adv_int_min       = 0x20,
@@ -255,9 +291,9 @@ static void apply_security_params(bool use_static_passkey) {
 #endif
             ESP_LOGI(TAG, "Pairing mode: Static passkey (legacy MITM bond)");
         }
-        iocap = ESP_IO_CAP_OUT;
+        iocap = ESP_IO_CAP_IN;
         uint32_t passkey = effective_passkey;
-        esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(passkey));
+        // esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(passkey));
         s_use_static_passkey = true;
         s_require_mitm = true;
         ESP_LOGI(TAG, "Setting passkey: %06lu (slot %u)", (unsigned long) passkey,
@@ -273,6 +309,7 @@ static void apply_security_params(bool use_static_passkey) {
         ESP_LOGI(TAG, "Pairing mode: Just Works / host-selected secure bonding");
     }
 
+    ESP_LOGI(TAG, "XXX auth_req=%d", (int)auth_req);
     esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE, &auth_req, sizeof(uint8_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
     esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));
@@ -351,6 +388,7 @@ static void do_start_advertising() {
 
 // ── GAP Event Handler ────────────────────────────────────────────────────────
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
+    ESP_LOGI(TAG, "GAP: ev %d", (int)event);
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
         case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
@@ -491,8 +529,16 @@ static const uint8_t PROP_READ_WRITE  = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_C
 static const uint8_t PROP_READ_NOTIFY = ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 
 // ── DIS (Device Information Service) ─────────────────────────────────────────
-static uint8_t  pnp_id_val[7]     = {0x01, 0xE5, 0x02, 0xB2, 0xA1, 0x00, 0x01};
-static const char mfr_name_val[]  = "Espressif";
+// static uint8_t  pnp_id_val[7]     = {0x01, 0xE5, 0x02, 0xB2, 0xA1, 0x00, 0x01};
+
+static uint8_t pnp_id_val[7] = {
+    0x02,       // Vendor ID Source (0x02 = USB Vendor ID assigned)
+    0x4C, 0x05, // Vendor ID (0x054C - Sony Corporation)
+    0x3B, 0x10, // Product ID (0x103B - Generic Keyboard Identifier)
+    0x00, 0x01  // Product Version v1.0.0
+};
+
+static const char mfr_name_val[] = "Sony Corporation";
 
 enum { DIS_IDX_SVC, DIS_IDX_PNP_CHAR, DIS_IDX_PNP_VAL, DIS_IDX_MFR_CHAR, DIS_IDX_MFR_VAL, DIS_IDX_NB };
 static uint16_t dis_handle_table[DIS_IDX_NB];
@@ -591,34 +637,49 @@ static const esp_gatts_attr_db_t hid_attr_db[HID_IDX_NB] = {
     [IDX_CHAR_HID_CTRL_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_CONTROL_POINT, PERM_W_ENC, 1, 1, &hid_ctrl_val}},
     [IDX_CHAR_PROTO_MODE] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_RW_NR}},
     [IDX_CHAR_PROTO_MODE_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_PROTO_MODE, PERM_RW_ENC, 1, 1, &proto_mode_val}},
+
     // Boot keyboard input report
     [IDX_CHAR_BOOT_KB_IN] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_NOTIFY}},
     [IDX_CHAR_BOOT_KB_IN_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_BOOT_KB_INPUT, PERM_R_ENC, sizeof(boot_kb_in_val), sizeof(boot_kb_in_val), boot_kb_in_val}},
-    [IDX_CHAR_BOOT_KB_IN_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, PERM_RW_ENC, sizeof(boot_kb_in_ccc_val), sizeof(boot_kb_in_ccc_val), (uint8_t *)&boot_kb_in_ccc_val}},
+    // FIX: Changed PERM_RW_ENC to PERM_WRITE_ENC | PERM_READ
+    [IDX_CHAR_BOOT_KB_IN_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, (PERM_W_ENC | PERM_R), sizeof(boot_kb_in_ccc_val), sizeof(boot_kb_in_ccc_val), (uint8_t *)&boot_kb_in_ccc_val}},
+
     // Boot keyboard output report
     [IDX_CHAR_BOOT_KB_OUT] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_WRITE}},
     [IDX_CHAR_BOOT_KB_OUT_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_BOOT_KB_OUTPUT, PERM_RW_ENC, sizeof(boot_kb_out_val), sizeof(boot_kb_out_val), boot_kb_out_val}},
+
+    // Standard Input Report
     [IDX_CHAR_REPORT] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_NOTIFY}},
     [IDX_CHAR_REPORT_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_REPORT, PERM_R_ENC, sizeof(report_val), sizeof(report_val), report_val}},
-    [IDX_CHAR_REPORT_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, PERM_RW_ENC, sizeof(report_ccc_val), sizeof(report_ccc_val), (uint8_t *)&report_ccc_val}},
+    // FIX: Changed PERM_RW_ENC to PERM_WRITE_ENC | PERM_READ
+    [IDX_CHAR_REPORT_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, (PERM_W_ENC | PERM_R), sizeof(report_ccc_val), sizeof(report_ccc_val), (uint8_t *)&report_ccc_val}},
     [IDX_CHAR_REPORT_REF] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_RPT_REF_DESCR, PERM_R_ENC, sizeof(report_ref_val), sizeof(report_ref_val), report_ref_val}},
+
+    // Standard Output Report
     [IDX_CHAR_REPORT_OUT] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_WRITE}},
     [IDX_CHAR_REPORT_OUT_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_REPORT, PERM_RW_ENC, sizeof(report_out_val), sizeof(report_out_val), report_out_val}},
     [IDX_CHAR_REPORT_OUT_REF] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_RPT_REF_DESCR, PERM_R_ENC, sizeof(report_out_ref_val), sizeof(report_out_ref_val), report_out_ref_val}},
+
     // Consumer control report (Report ID 2)
     [IDX_CHAR_CONSUMER] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_NOTIFY}},
     [IDX_CHAR_CONSUMER_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_REPORT, PERM_R_ENC, sizeof(consumer_val), sizeof(consumer_val), consumer_val}},
-    [IDX_CHAR_CONSUMER_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, PERM_RW_ENC, sizeof(consumer_ccc_val), sizeof(consumer_ccc_val), (uint8_t *)&consumer_ccc_val}},
+    // FIX: Changed PERM_RW_ENC to PERM_WRITE_ENC | PERM_READ
+    [IDX_CHAR_CONSUMER_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, (PERM_W_ENC | PERM_R), sizeof(consumer_ccc_val), sizeof(consumer_ccc_val), (uint8_t *)&consumer_ccc_val}},
     [IDX_CHAR_CONSUMER_REF] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_RPT_REF_DESCR, PERM_R_ENC, sizeof(consumer_ref_val), sizeof(consumer_ref_val), consumer_ref_val}},
+
     // System control report (Report ID 3)
     [IDX_CHAR_SYSTEM] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_NOTIFY}},
+    // FIX: Removed '&' from system_val pointer assignment
     [IDX_CHAR_SYSTEM_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_REPORT, PERM_R_ENC, sizeof(system_val), sizeof(system_val), &system_val}},
-    [IDX_CHAR_SYSTEM_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, PERM_RW_ENC, sizeof(system_ccc_val), sizeof(system_ccc_val), (uint8_t *)&system_ccc_val}},
+    // FIX: Changed PERM_RW_ENC to PERM_WRITE_ENC | PERM_READ
+    [IDX_CHAR_SYSTEM_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, (PERM_W_ENC | PERM_R), sizeof(system_ccc_val), sizeof(system_ccc_val), (uint8_t *)&system_ccc_val}},
     [IDX_CHAR_SYSTEM_REF] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_RPT_REF_DESCR, PERM_R_ENC, sizeof(system_ref_val), sizeof(system_ref_val), system_ref_val}},
+
     // Mouse report (Report ID 4)
     [IDX_CHAR_MOUSE] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_DECLARE, PERM_R, 1, 1, (uint8_t *)&PROP_READ_NOTIFY}},
     [IDX_CHAR_MOUSE_VAL] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_HID_REPORT, PERM_R_ENC, sizeof(mouse_val), sizeof(mouse_val), mouse_val}},
-    [IDX_CHAR_MOUSE_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, PERM_RW_ENC, sizeof(mouse_ccc_val), sizeof(mouse_ccc_val), (uint8_t *)&mouse_ccc_val}},
+    // FIX: Changed PERM_RW_ENC to PERM_WRITE_ENC | PERM_READ
+    [IDX_CHAR_MOUSE_CCC] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_CHAR_CLIENT_CONFIG, (PERM_W_ENC | PERM_R), sizeof(mouse_ccc_val), sizeof(mouse_ccc_val), (uint8_t *)&mouse_ccc_val}},
     [IDX_CHAR_MOUSE_REF] = {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&UUID_RPT_REF_DESCR, PERM_R_ENC, sizeof(mouse_ref_val), sizeof(mouse_ref_val), mouse_ref_val}},
 };
 
@@ -809,6 +870,8 @@ void EspidfBleKeyboard::generate_slot_addrs_() {
                      slot_addrs_[i][0], slot_addrs_[i][1], slot_addrs_[i][2],
                      slot_addrs_[i][3], slot_addrs_[i][4], slot_addrs_[i][5]);
         }
+
+        set_host_slot_passkey(i, 123456, false);
     }
     nvs_commit(handle);
     nvs_close(handle);

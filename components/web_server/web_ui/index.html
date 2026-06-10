@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESP32 Chamber Heater Controller</title>
+<title>ESP32 PS5 BLE</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#1a1a2e;color:#e0e0e0;padding:16px;max-width:1600px;margin:0 auto}
@@ -29,22 +29,21 @@ input[type=file]{margin-bottom:8px}
 </style>
 </head>
 <body>
-<h1>ESP32 Chamber Heater Controller</h1>
+<h1>ESP32 PS5 BLE</h1>
 
 <div class="card" id="status-card">
   <h2>Status</h2>
-  <div class="status-row"><span>Temperature:</span><span class="status-val" id="st-temp">--</span></div>
-  <div class="status-row"><span>Setpoint:</span><span class="status-val" id="st-setpoint">--</span></div>
-  <div class="status-row"><span>TempError:</span><span class="status-val" id="st-temperror">--</span></div>
-  <div class="status-row"><span>Heating:</span><span class="status-val" id="st-heating">--</span></div>
-  <div class="status-row"><span>Duty:</span><span class="status-val" id="st-duty">--</span></div>
-  <div class="status-row"><span>Heater Timeout:</span><span class="status-val" id="st-heatertimeout">--</span></div>
-  <div class="status-row"><span>Heater Time Left:</span><span class="status-val" id="st-heatertimeleft">--</span></div>
-  <div class="status-row"><span>Fan:</span><span class="status-val" id="st-fan">--</span></div>
-  <div class="status-row"><span>Fault:</span><span class="status-val" id="st-fault">--</span></div>
-  <div class="status-row"><span>Fan1 Edges:</span><span class="status-val" id="st-fan1">--</span></div>
-  <div class="status-row"><span>Fan2 Edges:</span><span class="status-val" id="st-fan2">--</span></div>
+  <div class="status-row"><span>Timenow:</span><span class="status-val" id="st-timenow">--</span></div>
 </div>
+
+<div class="card">
+  <h2>Send KEY</h2>
+  <label>Key code:</label>
+  <input type="text" id="key-code" placeholder="Network name">
+  <button class="btn-primary" onclick="sendKeyCode()">Send</button>
+  <div class="msg" id="key-code-msg"></div>
+</div>
+
 <div class="card">
   <h2>Wi-Fi Configuration</h2>
   <label>SSID:</label>
@@ -97,17 +96,14 @@ async function api(url, opts) {
 async function loadStatus() {
   const s = await api('/api/status');
   if (s.error) return;
-  $('st-temp').textContent = s.temp_celsius.toFixed(1) + '°C';
-  $('st-setpoint').textContent = s.setpoint.toFixed(1) + '°C';
-  $('st-temperror').textContent = s.temp_error.toFixed(1) + '°C';
-  $('st-heating').textContent = s.heating_active ? 'ON' : 'OFF';
-  $('st-duty').textContent = s.duty.toFixed(1) + '%';
-  $('st-heatertimeout').textContent = s.heater_timeout_sec + 's';
-  $('st-heatertimeleft').textContent = s.heater_time_left_sec + 's';
-  $('st-fan').textContent = s.fan_status ? 'ON' : 'OFF';
-  $('st-fault').textContent = s.fault_lockout ? 'YES' : 'NO';
-  $('st-fan1').textContent = s.edge_count_fan1;
-  $('st-fan2').textContent = s.edge_count_fan2;
+  $('st-timenow').textContent = s.timenow;
+}
+
+async function sendKeyCode() {
+  const key_code = $('key-codessid').value;
+  if (!key_code) { showMsg('key-code-msg', 'Enter Key Code', false); return; }
+  const r = await api('/api/keycode', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key_code})});
+  showMsg('key-code-msg', r.ok ? r.msg : 'Error', r.ok);
 }
 
 async function setWifi() {

@@ -21,15 +21,13 @@ RingBufferLogger::RingBufferLogger() {
     lock = xSemaphoreCreateMutex();
 }
 
-void RingBufferLogger::write_entry(const char* message, size_t length) {
-    length = strnlen(message, length);
-    if (length == 0) return;
-    bool truncated = false;
+void RingBufferLogger::write_entry(const char* message, size_t length, bool truncated) {
 
-    if (length > MAX_ENTRY_SIZE - 1) {
+    if (truncated) {
         length = MAX_ENTRY_SIZE - 4;
-        truncated = true;
     }
+
+    length = std::min(length, MAX_ENTRY_SIZE - 1);
 
     if (xSemaphoreTake(lock, 0) != pdTRUE) return;
 
@@ -107,7 +105,8 @@ static int vprintf_hook(const char *fmt, va_list args) {
     int len = vsnprintf(buffer, sizeof(buffer) - 1, fmt, args);
 
     if (len > 0) {
-        RingBufferLogger::instance().write_entry(buffer, len);
+        bool truncated = len >= sizeof(buffer) - 1;
+        RingBufferLogger::instance().write_entry(buffer, len, truncated);
     }
 
     // Also print to serial/default output

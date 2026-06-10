@@ -12,6 +12,7 @@ class WifiMgmt {
     bool get_sta_credentials(char *ssid, size_t ssid_len, char *pass, size_t pass_len);
 
     bool is_ap_mode = false;
+    uint32_t ip_addr{};
     char ip_str[16] = "0.0.0.0";
     int retry_count = 0;
     EventGroupHandle_t wifi_event_group{};
@@ -24,8 +25,9 @@ public:
     void start();
 
     /* Get current Wi-Fi mode info */
-    bool ap_mode();
-    const char *get_ip();
+    bool ap_mode() const;
+    const char *get_ip_str() const;
+    uint32_t get_ip() const;
 
     /* Configure STA credentials (saves to NVS, restarts Wi-Fi in STA mode) */
     void set_sta_credentials(const char *ssid, const char *password);

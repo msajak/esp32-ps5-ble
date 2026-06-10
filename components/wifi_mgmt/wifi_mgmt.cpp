@@ -142,12 +142,16 @@ void WifiMgmt::start() {
     }
 }
 
-bool WifiMgmt::ap_mode(void) {
+bool WifiMgmt::ap_mode(void) const {
     return is_ap_mode;
 }
 
-const char *WifiMgmt::get_ip(void) {
+const char *WifiMgmt::get_ip_str(void) const {
     return ip_str;
+}
+
+uint32_t WifiMgmt::get_ip(void) const {
+    return ip_addr;
 }
 
 void WifiMgmt::set_sta_credentials(const char *ssid, const char *password) {
@@ -184,6 +188,7 @@ void WifiMgmt::ev_handler(esp_event_base_t event_base, int32_t event_id, void* e
         }
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
+        ip_addr = event->ip_info.ip.addr;
         snprintf(ip_str, sizeof(ip_str), IPSTR, IP2STR(&event->ip_info.ip));
         ESP_LOGI(TAG, "Got IP: %s", ip_str);
         retry_count = 0;
