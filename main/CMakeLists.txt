@@ -7,5 +7,6 @@ file(GLOB app_sources
 idf_component_register(
     SRCS ${app_sources}
     INCLUDE_DIRS "."
-    REQUIRES wifi_mgmt web_server ota cdisplay blekb shared nvs_flash
+    REQUIRES wifi_mgmt web_server ota blekb shared nvs_flash
+    #REQUIRES wifi_mgmt web_server ota cdisplay blekb shared nvs_flash
 )

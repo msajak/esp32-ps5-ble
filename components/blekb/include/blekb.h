@@ -7,8 +7,12 @@
 #include "freertos/semphr.h"
 #include "esp_bt.h"
 #include "esp_bt_main.h"
+#ifdef CONFIG_BT_CLASSIC_ENABLED
+#include "esp_gap_bt_api.h"
+#else
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
+#endif
 #include "nvs_flash.h"
 
 // Maximum number of host slots for multi-host switching
@@ -157,12 +161,18 @@ class EspidfBleKeyboard {
   struct HostSlot {
     bool occupied{false};
     esp_bd_addr_t addr{};
+#ifndef CONFIG_BT_CLASSIC_ENABLED
     esp_ble_addr_type_t addr_type{BLE_ADDR_TYPE_PUBLIC};
+#endif
     std::string name;  // friendly label
   };
   const HostSlot &get_host_slot(uint8_t slot) const { return hosts_[slot]; }
   const uint8_t *get_slot_addr(uint8_t slot) const { return slot_addrs_[slot]; }
+#ifdef CONFIG_BT_CLASSIC_ENABLED
+  void assign_host_slot_(uint8_t slot, const esp_bd_addr_t addr);
+#else
   void assign_host_slot_(uint8_t slot, const esp_bd_addr_t addr, esp_ble_addr_type_t addr_type);
+#endif
   void save_host_slots_();
 
   void set_host_slot_passkey(uint8_t slot, uint32_t passkey, bool secure_connections) {

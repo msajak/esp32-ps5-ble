@@ -10,7 +10,7 @@
 #include "shared_objs.h"
 #include "web_server.h"
 #include "wifi_mgmt.h"
-#include "cdisplay.h"
+// #include "cdisplay.h"
 #include "blekb.h"
 #include "logger.h"
 
@@ -64,13 +64,13 @@ void app_main(void) {
         }
     }, "blekb", 4096, &blekb, tskIDLE_PRIORITY + 1, nullptr);
 
-    CDisplay display;
-    display.begin();
+    // CDisplay display;
+    // display.begin();
 
-    char ip[20]; sprintf(ip, ".%u", static_cast<uint8_t>((wifi_mgmt.get_ip() >> 24) & 0xFF));
-    display.clear();
-    display.text(ip, 0, 12);
-    display.disp();
+    // char ip[20]; sprintf(ip, ".%u", static_cast<uint8_t>((wifi_mgmt.get_ip() >> 24) & 0xFF));
+    // display.clear();
+    // display.text(ip, 0, 12);
+    // display.disp();
 
     int i = 0;
     while (1) {
