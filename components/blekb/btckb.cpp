@@ -143,6 +143,26 @@ static void bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
         case ESP_BT_GAP_MODE_CHG_EVT:
             ESP_LOGD(TAG, "GAP: Mode change (mode=%d)", param->mode_chg.mode);
             break;
+        case ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT:
+            if (param->acl_conn_cmpl_stat.stat != ESP_BT_STATUS_SUCCESS) {
+                ESP_LOGW(TAG, "GAP: ACL connection failed (stat=%d)", param->acl_conn_cmpl_stat.stat);
+                if (s_instance && s_instance->is_connected()) {
+                    s_instance->set_connected(false, 0);
+                    s_instance->queue_paired_state(false);
+                    if (s_app_registered)
+                        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+                }
+            }
+            break;
+        case ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT:
+            if (s_instance && s_instance->is_connected()) {
+                ESP_LOGW(TAG, "GAP: ACL disconnected while HID connected — resetting");
+                s_instance->set_connected(false, 0);
+                s_instance->queue_paired_state(false);
+                if (s_app_registered)
+                    esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            }
+            break;
         default:
             break;
     }
@@ -200,7 +220,6 @@ static void hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param) {
                 }
                 s_protocol_mode = 1;
                 esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
-                stop_reconnect_timer();
             } else {
                 ESP_LOGD(TAG, "HIDD: Connection attempt failed (%d)", param->open.status);
                 if (s_app_registered)
