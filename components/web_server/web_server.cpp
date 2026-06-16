@@ -8,6 +8,7 @@
 #include "logger.h"
 
 #include "web_server.h"
+#include "blekb.h"
 
 static constexpr const char* TAG = "WEB";
 
@@ -38,7 +39,7 @@ esp_err_t WebServer::api_key_code_post_handler(httpd_req_t *req) {
     }
 
     cJSON *key_code = cJSON_GetObjectItem(root, "key_code");
-    if (!cJSON_IsString(key_code)) {
+    if (!cJSON_IsNumber(key_code)) {
         cJSON_Delete(root);
         httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing key_code");
         return ESP_FAIL;
@@ -48,6 +49,8 @@ esp_err_t WebServer::api_key_code_post_handler(httpd_req_t *req) {
     httpd_resp_sendstr(req, "{\"ok\":true,\"msg\":\"Accepted\"}");
 
     ESP_LOGI(TAG, "received key code: %d", key_code->valueint);
+
+    blekb.send_key_combo(0, key_code->valueint);
 
     cJSON_Delete(root);
     return ESP_OK;

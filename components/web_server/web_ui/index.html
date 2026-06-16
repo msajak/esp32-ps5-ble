@@ -39,7 +39,7 @@ input[type=file]{margin-bottom:8px}
 <div class="card">
   <h2>Send KEY</h2>
   <label>Key code:</label>
-  <input type="text" id="key-code" placeholder="Network name">
+  <input type="text" id="key-code" placeholder="">
   <button class="btn-primary" onclick="sendKeyCode()">Send</button>
   <div class="msg" id="key-code-msg"></div>
 </div>
@@ -100,8 +100,9 @@ async function loadStatus() {
 }
 
 async function sendKeyCode() {
-  const key_code = $('key-codessid').value;
+  let key_code = $('key-code').value;
   if (!key_code) { showMsg('key-code-msg', 'Enter Key Code', false); return; }
+  key_code = parseInt(key_code, 10);
   const r = await api('/api/keycode', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key_code})});
   showMsg('key-code-msg', r.ok ? r.msg : 'Error', r.ok);
 }

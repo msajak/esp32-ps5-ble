@@ -27,6 +27,7 @@ void app_main(void) {
     ESP_LOGI(TAG, "ESP32 PS5 BLE starting...");
 
     esp_err_t err = nvs_flash_init();
+
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_LOGW(TAG, "NVS partition truncated, erasing...");
         nvs_flash_erase();
@@ -55,14 +56,14 @@ void app_main(void) {
 
     ESP_LOGI(TAG, "ESP32 PS5 BLE started! Web UI at http://%s/", wifi_mgmt.get_ip_str());
 
-    xTaskCreate( [](void *arg) {
-        auto *blekb = static_cast<EspidfBleKeyboard *>(arg);
-        const TickType_t delay = pdMS_TO_TICKS(10);
-        while (true) {
-            blekb->loop();
-            vTaskDelay(delay);
-        }
-    }, "blekb", 4096, &blekb, tskIDLE_PRIORITY + 1, nullptr);
+    // xTaskCreate( [](void *arg) {
+    //     auto *blekb = static_cast<EspidfBleKeyboard *>(arg);
+    //     const TickType_t delay = pdMS_TO_TICKS(10);
+    //     while (true) {
+    //         blekb->loop();
+    //         vTaskDelay(delay);
+    //     }
+    // }, "blekb", 4096, &blekb, tskIDLE_PRIORITY + 1, nullptr);
 
     // CDisplay display;
     // display.begin();
