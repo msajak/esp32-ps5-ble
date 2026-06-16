@@ -89,10 +89,11 @@ static void reconnect_timer_cb(void *arg) {
         stop_reconnect_timer();
         return;
     }
-    ESP_LOGD(TAG, "Auto-reconnect: attempting slot %u", slot);
+    esp_bt_hid_device_disconnect();
     esp_bd_addr_t addr;
     memcpy(addr, host.addr, sizeof(esp_bd_addr_t));
-    esp_bt_hid_device_connect(addr);
+    esp_err_t err = esp_bt_hid_device_connect(addr);
+    ESP_LOGI(TAG, "Auto-reconnect: slot %u → %s", slot, esp_err_to_name(err));
 }
 
 static void start_reconnect_timer() {
