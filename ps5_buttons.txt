@@ -1,0 +1,20 @@
+  PS5 System Navigation Shortcuts
+
+  ┌───────────────────┬─────────────────────┬────────────────────────────────────────┐
+  │ Controller Button │ Keyboard Equivalent │ USB HID Key Code (Hex)                 │
+  ├───────────────────┼─────────────────────┼────────────────────────────────────────┤
+  │ PS Button         │ Pause / Break       │ 0x48                                   │
+  │ Cross (Select)    │ Enter / Return      │ 0x28                                   │
+  │ Circle (Back)     │ Escape or Backspace │ 0x29 / 0x2A                            │
+  │ Triangle          │ F1                  │ 0x3A                                   │
+  │ Square            │ F2                  │ 0x3B                                   │
+  │ Options           │ F3                  │ 0x3C                                   │
+  │ Create (Share)    │ Print Screen        │ 0x46                                   │
+  │ D-Pad             │ Arrow Keys          │ 0x4F (R), 0x50 (L), 0x51 (D), 0x52 (U) │
+  └───────────────────┴─────────────────────┴────────────────────────────────────────┘
+
+  Additional Shortcuts
+   * PS Button (Hold): Some firmware implementations allow you to hold the Pause/Break key to return to the Home Screen.
+   * Mute: While not standard on all keyboards, some PS5 setups respond to Scroll Lock (0x47) or specialized Media Mute keys (0x00E2 in Consumer Usage).
+   * Volume: Standard Media keys (Volume Up/Down) work via the Consumer Control report (Report ID 2 in this project).
+

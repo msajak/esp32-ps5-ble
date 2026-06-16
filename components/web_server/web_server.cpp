@@ -175,35 +175,37 @@ void WebServer::start() {
         return;
     }
 
+    auto make_uri = [this](const char *path, httpd_method_t method, esp_err_t (*fn)(httpd_req_t *)) {
+        httpd_uri_t u = {};
+        u.uri = path;
+        u.method = method;
+        u.handler = fn;
+        u.user_ctx = this;
+        return u;
+    };
+
     httpd_uri_t uris[] = {
-        {"/", HTTP_GET, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->root_get_handler(req);
-        }, this, false, false, nullptr},
-        {"/api/status", HTTP_GET, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->api_status_get_handler(req);
-        }, this, false, false, nullptr},
-        {"/api/keycode", HTTP_POST, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->api_key_code_post_handler(req);
-        }, this, false, false, nullptr},
-        {"/api/wifi/config", HTTP_POST, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->api_wifi_post_handler(req);
-        }, this, false, false, nullptr},
-        {"/api/ota/update", HTTP_POST, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->api_ota_post_handler(req);
-        }, this, false, false, nullptr},
-        {"/api/logs", HTTP_GET, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->api_logs_get_handler(req);
-        }, this, false, false, nullptr},
-        {"/api/logs/clear", HTTP_POST, [](httpd_req_t *req) -> esp_err_t {
-            WebServer* instance = static_cast<WebServer*>(req->user_ctx);
-            return instance->api_logs_clear_handler(req);
-        }, this, false, false, nullptr}
+        make_uri("/", HTTP_GET, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->root_get_handler(req);
+        }),
+        make_uri("/api/keycode", HTTP_POST, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_key_code_post_handler(req);
+        }),
+        make_uri("/api/status", HTTP_GET, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_status_get_handler(req);
+        }),
+        make_uri("/api/wifi/config", HTTP_POST, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_wifi_post_handler(req);
+        }),
+        make_uri("/api/ota/update", HTTP_POST, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_ota_post_handler(req);
+        }),
+        make_uri("/api/logs", HTTP_GET, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_logs_get_handler(req);
+        }),
+        make_uri("/api/logs/clear", HTTP_POST, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_logs_clear_handler(req);
+        }),
     };
 
     for (size_t i = 0; i < sizeof(uris) / sizeof(uris[0]); i++) {

@@ -70,6 +70,42 @@ static esp_hidd_app_param_t s_app_param = {};
 static esp_hidd_qos_param_t s_in_qos = {};
 static esp_hidd_qos_param_t s_out_qos = {};
 
+// Auto-reconnect: periodically try to reconnect to last known host
+static esp_timer_handle_t s_reconnect_timer = nullptr;
+
+static void stop_reconnect_timer() {
+    if (s_reconnect_timer != nullptr)
+        esp_timer_stop(s_reconnect_timer);
+}
+
+static void reconnect_timer_cb(void *arg) {
+    if (!s_instance || s_instance->is_connected()) {
+        stop_reconnect_timer();
+        return;
+    }
+    uint8_t slot = s_instance->active_host_slot();
+    const auto &host = s_instance->get_host_slot(slot);
+    if (!host.occupied) {
+        stop_reconnect_timer();
+        return;
+    }
+    ESP_LOGD(TAG, "Auto-reconnect: attempting slot %u", slot);
+    esp_bd_addr_t addr;
+    memcpy(addr, host.addr, sizeof(esp_bd_addr_t));
+    esp_bt_hid_device_connect(addr);
+}
+
+static void start_reconnect_timer() {
+    if (s_reconnect_timer == nullptr) {
+        esp_timer_create_args_t args = {};
+        args.callback = reconnect_timer_cb;
+        args.name = "bt_reconn";
+        esp_timer_create(&args, &s_reconnect_timer);
+    }
+    stop_reconnect_timer();
+    esp_timer_start_periodic(s_reconnect_timer, 3000000);
+}
+
 // ── Classic BT GAP Callback ─────────────────────────────────────────────────
 static void bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param) {
     ESP_LOGI(TAG, "GAP: ev %d", (int)event);
@@ -136,6 +172,17 @@ static void hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param) {
                 ESP_LOGI(TAG, "HIDD: App registered, discoverable");
                 s_app_registered = true;
                 esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+                if (s_instance) {
+                    uint8_t slot = s_instance->active_host_slot();
+                    const auto &host = s_instance->get_host_slot(slot);
+                    if (host.occupied) {
+                        ESP_LOGI(TAG, "HIDD: Auto-reconnecting to slot %u on startup", slot);
+                        esp_bd_addr_t addr;
+                        memcpy(addr, host.addr, sizeof(esp_bd_addr_t));
+                        esp_bt_hid_device_connect(addr);
+                        start_reconnect_timer();
+                    }
+                }
             } else {
                 ESP_LOGE(TAG, "HIDD: App register failed (%d)", param->register_app.status);
             }
@@ -152,6 +199,11 @@ static void hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param) {
                 }
                 s_protocol_mode = 1;
                 esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
+                stop_reconnect_timer();
+            } else {
+                ESP_LOGD(TAG, "HIDD: Connection attempt failed (%d)", param->open.status);
+                if (s_app_registered)
+                    esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
             }
             break;
         case ESP_HIDD_CLOSE_EVT:
@@ -163,6 +215,11 @@ static void hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param) {
             s_protocol_mode = 1;
             if (s_app_registered)
                 esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            if (s_instance) {
+                const auto &host = s_instance->get_host_slot(s_instance->active_host_slot());
+                if (host.occupied)
+                    start_reconnect_timer();
+            }
             break;
         case ESP_HIDD_SEND_REPORT_EVT:
             if (param->send_report.status != ESP_HIDD_SUCCESS)
