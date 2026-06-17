@@ -17,5 +17,5 @@ private:
     ledc_channel_t channel_{};
     QueueHandle_t cmd_queue_{};
     uint8_t angle_rest_{0};
-    uint8_t angle_press_{45};
+    uint8_t angle_press_{180};
 };
