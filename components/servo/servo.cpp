@@ -6,6 +6,8 @@
 static const char *TAG = "SERVO";
 
 struct ServoCmd {
+    uint32_t rest_us;
+    uint32_t press_us;
     uint32_t hold_ms;
 };
 
@@ -30,14 +32,14 @@ void Servo::start(gpio_num_t pin, ledc_channel_t channel, ledc_timer_t timer) {
     ch_cfg.hpoint = 0;
     ledc_channel_config(&ch_cfg);
 
-    set_angle(angle_rest_);
+    set_pulse_us(832);
 
     xTaskCreate(task_fn, "servo", 2048, this, tskIDLE_PRIORITY + 1, nullptr);
     ESP_LOGI(TAG, "Servo on GPIO %d ready", pin);
 }
 
-void Servo::press(uint32_t hold_ms) {
-    ServoCmd cmd{hold_ms};
+void Servo::press(uint32_t rest_us, uint32_t press_us, uint32_t hold_ms) {
+    ServoCmd cmd{rest_us, press_us, hold_ms};
     xQueueSend(cmd_queue_, &cmd, 0);
 }
 
@@ -46,18 +48,18 @@ void Servo::task_fn(void *arg) {
     ServoCmd cmd;
     while (true) {
         if (xQueueReceive(self->cmd_queue_, &cmd, portMAX_DELAY) == pdTRUE) {
-            ESP_LOGI(TAG, "Press: hold %lums", (unsigned long)cmd.hold_ms);
-            self->set_angle(self->angle_press_);
+            ESP_LOGI(TAG, "Press: rest=%lu press=%lu hold=%lums",
+                     (unsigned long)cmd.rest_us, (unsigned long)cmd.press_us, (unsigned long)cmd.hold_ms);
+            self->set_pulse_us(cmd.press_us);
             vTaskDelay(pdMS_TO_TICKS(cmd.hold_ms));
-            self->set_angle(self->angle_rest_);
+            self->set_pulse_us(cmd.rest_us);
         }
     }
 }
 
-void Servo::set_angle(uint8_t angle) {
-    // GS-1502: 832µs→0°, 2500µs→180°. 14-bit resolution at 50Hz → 16384 ticks per 20ms.
-    uint32_t pulse_us = 832 + (uint32_t)angle * (2500 - 832) / 180;
-    uint32_t duty = pulse_us * 16384 / 20000;
+void Servo::set_pulse_us(uint32_t us) {
+    // 14-bit resolution at 50Hz → 16384 ticks per 20ms period
+    uint32_t duty = us * 16384 / 20000;
     ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_, duty);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, channel_);
 }

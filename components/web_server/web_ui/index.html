@@ -41,8 +41,18 @@ input[type=file]{margin-bottom:8px}
   <label>Key code:</label>
   <input type="text" id="key-code" placeholder="">
   <button class="btn-primary" onclick="sendKeyCode()">Send</button>
-  <button class="btn-danger" onclick="servoPress()">PS5 Power</button>
   <div class="msg" id="key-code-msg"></div>
+</div>
+
+<div class="card">
+  <h2>PS5 Power Button</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <div style="flex:1;min-width:80px"><label>Rest (µs):</label><input type="number" id="servo-rest" value="832"></div>
+    <div style="flex:1;min-width:80px"><label>Press (µs):</label><input type="number" id="servo-press" value="1100"></div>
+    <div style="flex:1;min-width:80px"><label>Hold (ms):</label><input type="number" id="servo-hold" value="1000"></div>
+  </div>
+  <button class="btn-danger" onclick="servoPress()">Press Power</button>
+  <div class="msg" id="servo-msg"></div>
 </div>
 
 <div class="card">
@@ -109,8 +119,11 @@ async function sendKeyCode() {
 }
 
 async function servoPress() {
-  const r = await api('/api/servo/press', {method:'POST'});
-  showMsg('key-code-msg', r.ok ? r.msg : 'Error', r.ok);
+  const rest = parseInt($('servo-rest').value) || 832;
+  const press = parseInt($('servo-press').value) || 1100;
+  const hold = parseInt($('servo-hold').value) || 1000;
+  const r = await api('/api/servo/press', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({rest,press,hold})});
+  showMsg('servo-msg', r.ok ? r.msg : 'Error', r.ok);
 }
 
 async function setWifi() {
