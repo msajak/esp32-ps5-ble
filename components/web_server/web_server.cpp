@@ -9,6 +9,7 @@
 
 #include "web_server.h"
 #include "blekb.h"
+#include "servo.h"
 
 static constexpr const char* TAG = "WEB";
 
@@ -153,6 +154,13 @@ esp_err_t WebServer::api_logs_clear_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
+esp_err_t WebServer::api_servo_press_handler(httpd_req_t *req) {
+    servo.press();
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, "{\"ok\":true,\"msg\":\"Power button pressed\"}");
+    return ESP_OK;
+}
+
 WebServer::~WebServer() {
     if (server) {
         httpd_stop(server);
@@ -205,6 +213,9 @@ void WebServer::start() {
         }),
         make_uri("/api/logs/clear", HTTP_POST, [](httpd_req_t *req) {
             return static_cast<WebServer*>(req->user_ctx)->api_logs_clear_handler(req);
+        }),
+        make_uri("/api/servo/press", HTTP_POST, [](httpd_req_t *req) {
+            return static_cast<WebServer*>(req->user_ctx)->api_servo_press_handler(req);
         }),
     };
 

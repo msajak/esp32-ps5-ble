@@ -12,6 +12,7 @@
 #include "wifi_mgmt.h"
 // #include "cdisplay.h"
 #include "blekb.h"
+#include "servo.h"
 #include "logger.h"
 
 // ESP-IDF entry point
@@ -51,7 +52,10 @@ void app_main(void) {
     EspidfBleKeyboard blekb;
     blekb.setup();
 
-    WebServer server(status_queue, wifi_mgmt, blekb);
+    Servo servo;
+    servo.start(GPIO_NUM_13);
+
+    WebServer server(status_queue, wifi_mgmt, blekb, servo);
     server.start();
 
     ESP_LOGI(TAG, "ESP32 PS5 BLE started! Web UI at http://%s/", wifi_mgmt.get_ip_str());

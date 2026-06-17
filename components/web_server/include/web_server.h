@@ -7,6 +7,7 @@
 class Params;
 class WifiMgmt;
 class EspidfBleKeyboard;
+class Servo;
 
 class WebServer {
 
@@ -19,10 +20,11 @@ class WebServer {
     esp_err_t api_status_get_handler(httpd_req_t *req);
     esp_err_t api_logs_get_handler(httpd_req_t *req);
     esp_err_t api_logs_clear_handler(httpd_req_t *req);
+    esp_err_t api_servo_press_handler(httpd_req_t *req);
 
 public:
-    WebServer(QueueHandle_t& status_queue, WifiMgmt& wifi_mgmt, EspidfBleKeyboard& blekb):
-        status_queue(status_queue), wifi_mgmt(wifi_mgmt), blekb(blekb) {}
+    WebServer(QueueHandle_t& status_queue, WifiMgmt& wifi_mgmt, EspidfBleKeyboard& blekb, Servo& servo):
+        status_queue(status_queue), wifi_mgmt(wifi_mgmt), blekb(blekb), servo(servo) {}
     ~WebServer();
 
     void start();
@@ -30,5 +32,6 @@ public:
     QueueHandle_t& status_queue;
     WifiMgmt& wifi_mgmt;
     EspidfBleKeyboard& blekb;
+    Servo& servo;
     Status last_status;
 };

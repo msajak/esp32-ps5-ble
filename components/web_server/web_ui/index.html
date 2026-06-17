@@ -41,6 +41,7 @@ input[type=file]{margin-bottom:8px}
   <label>Key code:</label>
   <input type="text" id="key-code" placeholder="">
   <button class="btn-primary" onclick="sendKeyCode()">Send</button>
+  <button class="btn-danger" onclick="servoPress()">PS5 Power</button>
   <div class="msg" id="key-code-msg"></div>
 </div>
 
@@ -104,6 +105,11 @@ async function sendKeyCode() {
   if (!key_code) { showMsg('key-code-msg', 'Enter Key Code', false); return; }
   key_code = parseInt(key_code, 10);
   const r = await api('/api/keycode', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key_code})});
+  showMsg('key-code-msg', r.ok ? r.msg : 'Error', r.ok);
+}
+
+async function servoPress() {
+  const r = await api('/api/servo/press', {method:'POST'});
   showMsg('key-code-msg', r.ok ? r.msg : 'Error', r.ok);
 }
 
