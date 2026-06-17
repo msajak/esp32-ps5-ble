@@ -55,8 +55,8 @@ void Servo::task_fn(void *arg) {
 }
 
 void Servo::set_angle(uint8_t angle) {
-    // 0°→500µs, 180°→2500µs. 14-bit resolution at 50Hz → 16384 ticks per 20ms.
-    uint32_t pulse_us = 500 + (uint32_t)angle * 2000 / 180;
+    // GS-1502: 832µs→0°, 2500µs→180°. 14-bit resolution at 50Hz → 16384 ticks per 20ms.
+    uint32_t pulse_us = 832 + (uint32_t)angle * (2500 - 832) / 180;
     uint32_t duty = pulse_us * 16384 / 20000;
     ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_, duty);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, channel_);
