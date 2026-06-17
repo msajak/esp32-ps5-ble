@@ -155,24 +155,39 @@ esp_err_t WebServer::api_logs_clear_handler(httpd_req_t *req) {
 }
 
 esp_err_t WebServer::api_servo_press_handler(httpd_req_t *req) {
-    uint32_t rest = 810, press = 2050, hold = 1000;
+    uint32_t rest{}, press{}, hold{};
     char buf[256];
     int ret = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    esp_err_t rv = ESP_OK;
     if (ret > 0) {
         buf[ret] = '\0';
         cJSON *root = cJSON_Parse(buf);
         if (root) {
             cJSON *j;
-            if ((j = cJSON_GetObjectItem(root, "rest")) && cJSON_IsNumber(j)) rest = j->valueint;
-            if ((j = cJSON_GetObjectItem(root, "press")) && cJSON_IsNumber(j)) press = j->valueint;
-            if ((j = cJSON_GetObjectItem(root, "hold")) && cJSON_IsNumber(j)) hold = j->valueint;
+            if ((j = cJSON_GetObjectItem(root, "rest")) && cJSON_IsNumber(j)) {
+                rest = j->valueint;
+            } else {
+                rv = ESP_FAIL;
+            }
+            if ((j = cJSON_GetObjectItem(root, "press")) && cJSON_IsNumber(j)) {
+                press = j->valueint;
+            } else {
+                rv = ESP_FAIL;
+            }
+            if ((j = cJSON_GetObjectItem(root, "hold")) && cJSON_IsNumber(j)) {
+                hold = j->valueint;
+            } else {
+                rv = ESP_FAIL;
+            }
             cJSON_Delete(root);
         }
     }
-    servo.press(rest, press, hold);
-    httpd_resp_set_type(req, "application/json");
-    httpd_resp_sendstr(req, "{\"ok\":true,\"msg\":\"Power button pressed\"}");
-    return ESP_OK;
+    if (rv == ESP_OK) {
+        servo.press(rest, press, hold);
+        httpd_resp_set_type(req, "application/json");
+        httpd_resp_sendstr(req, "{\"ok\":true,\"msg\":\"Power button pressed\"}");
+    }
+    return rv;
 }
 
 WebServer::~WebServer() {

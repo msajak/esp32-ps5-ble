@@ -69,8 +69,7 @@ void app_main(void) {
     }, "blekb", 4096, &blekb, tskIDLE_PRIORITY + 1, nullptr);
 
 
-    int i = 0;
-    while (1) {
+    while (true) {
         Status current_status{};
         current_status.timenow = esp_timer_get_time();
         if (xQueueOverwrite(status_queue, &current_status) != pdPASS) {

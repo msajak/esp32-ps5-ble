@@ -47,9 +47,9 @@ input[type=file]{margin-bottom:8px}
 <div class="card">
   <h2>PS5 Power Button</h2>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-    <div style="flex:1;min-width:80px"><label>Rest (µs):</label><input type="number" id="servo-rest" value="810"></div>
-    <div style="flex:1;min-width:80px"><label>Press (µs):</label><input type="number" id="servo-press" value="2050"></div>
-    <div style="flex:1;min-width:80px"><label>Hold (ms):</label><input type="number" id="servo-hold" value="1000"></div>
+    <div style="flex:1;min-width:80px"><label>Rest (% range):</label><input type="number" id="servo-rest" value="0"></div>
+    <div style="flex:1;min-width:80px"><label>Press (% range):</label><input type="number" id="servo-press" value="90"></div>
+    <div style="flex:1;min-width:80px"><label>Hold (ms):</label><input type="number" id="servo-hold" value="200"></div>
   </div>
   <button class="btn-danger" onclick="servoPress()">Press Power</button>
   <div class="msg" id="servo-msg"></div>
@@ -119,9 +119,9 @@ async function sendKeyCode() {
 }
 
 async function servoPress() {
-  const rest = parseInt($('servo-rest').value) || 832;
-  const press = parseInt($('servo-press').value) || 1100;
-  const hold = parseInt($('servo-hold').value) || 1000;
+  const rest = parseInt($('servo-rest').value) || 0;
+  const press = parseInt($('servo-press').value) || 100;
+  const hold = parseInt($('servo-hold').value) || 500;
   const r = await api('/api/servo/press', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({rest,press,hold})});
   showMsg('servo-msg', r.ok ? r.msg : 'Error', r.ok);
 }
