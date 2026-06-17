@@ -10,7 +10,6 @@
 #include "shared_objs.h"
 #include "web_server.h"
 #include "wifi_mgmt.h"
-// #include "cdisplay.h"
 #include "blekb.h"
 #include "servo.h"
 #include "logger.h"

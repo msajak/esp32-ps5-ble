@@ -18,3 +18,15 @@
    * Mute: While not standard on all keyboards, some PS5 setups respond to Scroll Lock (0x47) or specialized Media Mute keys (0x00E2 in Consumer Usage).
    * Volume: Standard Media keys (Volume Up/Down) work via the Consumer Control report (Report ID 2 in this project).
 
+ps5
+right 79
+left 80
+down 81
+up 82
+
+X 40
+siokol 41
+
+? 58
+screens 70
+PS 72
