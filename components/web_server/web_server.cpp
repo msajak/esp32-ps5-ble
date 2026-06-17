@@ -155,7 +155,7 @@ esp_err_t WebServer::api_logs_clear_handler(httpd_req_t *req) {
 }
 
 esp_err_t WebServer::api_servo_press_handler(httpd_req_t *req) {
-    uint32_t rest = 832, press = 1100, hold = 1000;
+    uint32_t rest = 810, press = 2050, hold = 1000;
     char buf[256];
     int ret = httpd_req_recv(req, buf, sizeof(buf) - 1);
     if (ret > 0) {

@@ -53,6 +53,8 @@ void Servo::task_fn(void *arg) {
             self->set_pulse_us(cmd.press_us);
             vTaskDelay(pdMS_TO_TICKS(cmd.hold_ms));
             self->set_pulse_us(cmd.rest_us);
+            vTaskDelay(pdMS_TO_TICKS(500));
+            self->set_pulse_us(0);
         }
     }
 }

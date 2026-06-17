@@ -8,7 +8,7 @@ class Servo {
 public:
     void start(gpio_num_t pin, ledc_channel_t channel = LEDC_CHANNEL_0,
                ledc_timer_t timer = LEDC_TIMER_0);
-    void press(uint32_t rest_us = 832, uint32_t press_us = 1100, uint32_t hold_ms = 1000);
+    void press(uint32_t rest_us = 810, uint32_t press_us = 2050, uint32_t hold_ms = 1000);
 
 private:
     static void task_fn(void *arg);
