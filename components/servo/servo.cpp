@@ -53,9 +53,9 @@ void Servo::task_fn(void *arg) {
             ESP_LOGI(TAG, "Press: rest_pct=%lu rest_us=%lu press_pct=%lu press_us=%lu hold=%lums",
                      cmd.rest_pct, rest_us, cmd.press_pct, press_us, cmd.hold_ms);
             ledc_channel_config(&self->ch_cfg_);
-            self->set_pulse_us(cmd.press_us);
+            self->set_pulse_us(press_us);
             vTaskDelay(pdMS_TO_TICKS(cmd.hold_ms));
-            self->set_pulse_us(cmd.rest_us);
+            self->set_pulse_us(rest_us);
             vTaskDelay(pdMS_TO_TICKS(500));
             ledc_stop(LEDC_LOW_SPEED_MODE, self->channel_, 0);
         }

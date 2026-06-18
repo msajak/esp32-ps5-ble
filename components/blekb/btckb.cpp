@@ -175,7 +175,7 @@ static void hidd_cb(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param) {
         case ESP_HIDD_INIT_EVT:
             if (param->init.status == ESP_HIDD_SUCCESS) {
                 ESP_LOGI(TAG, "HIDD: Initialized, registering app");
-                s_app_param.name = s_instance ? s_instance->device_name().c_str() : "ESP32 KB";
+                s_app_param.name = s_instance ? s_instance->device_name().c_str() : "ESP32 BT KB";
                 s_app_param.description = "Keyboard";
                 s_app_param.provider = "Espressif";
                 s_app_param.subclass = 0x40;
