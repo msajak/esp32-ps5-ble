@@ -24,16 +24,14 @@ void Servo::start(gpio_num_t pin, ledc_channel_t channel, ledc_timer_t timer) {
     timer_cfg.clk_cfg = LEDC_AUTO_CLK;
     ledc_timer_config(&timer_cfg);
 
-    ledc_channel_config_t ch_cfg = {};
-    ch_cfg.speed_mode = LEDC_LOW_SPEED_MODE;
-    ch_cfg.channel = channel;
-    ch_cfg.timer_sel = timer;
-    ch_cfg.gpio_num = pin;
-    ch_cfg.duty = 0;
-    ch_cfg.hpoint = 0;
-    ledc_channel_config(&ch_cfg);
-
-    set_pulse_us(SERVO_PULSE_MIN_US);
+    ch_cfg_ = {};
+    ch_cfg_.speed_mode = LEDC_LOW_SPEED_MODE;
+    ch_cfg_.channel = channel;
+    ch_cfg_.timer_sel = timer;
+    ch_cfg_.gpio_num = pin;
+    ch_cfg_.duty = 0;
+    ch_cfg_.hpoint = 0;
+    ledc_channel_config(&ch_cfg_);
 
     xTaskCreate(task_fn, "servo", 2048, this, tskIDLE_PRIORITY + 1, nullptr);
     ESP_LOGI(TAG, "Servo on GPIO %d ready", pin);
@@ -52,14 +50,14 @@ void Servo::task_fn(void *arg) {
             uint32_t press_us{}, rest_us{};
             press_us = SERVO_PULSE_MIN_US + ((SERVO_PULSE_MAX_US - SERVO_PULSE_MIN_US) * cmd.press_pct) / 100;
             rest_us = SERVO_PULSE_MIN_US + ((SERVO_PULSE_MAX_US - SERVO_PULSE_MIN_US) * cmd.rest_pct) / 100;
-
             ESP_LOGI(TAG, "Press: rest_pct=%lu rest_us=%lu press_pct=%lu press_us=%lu hold=%lums",
                      cmd.rest_pct, rest_us, cmd.press_pct, press_us, cmd.hold_ms);
-            self->set_pulse_us(press_us);
+            ledc_channel_config(&self->ch_cfg_);
+            self->set_pulse_us(cmd.press_us);
             vTaskDelay(pdMS_TO_TICKS(cmd.hold_ms));
-            self->set_pulse_us(rest_us);
-            vTaskDelay(pdMS_TO_TICKS(200));
-            self->set_pulse_us(0);
+            self->set_pulse_us(cmd.rest_us);
+            vTaskDelay(pdMS_TO_TICKS(500));
+            ledc_stop(LEDC_LOW_SPEED_MODE, self->channel_, 0);
         }
     }
 }

@@ -18,6 +18,7 @@ private:
     void set_pulse_us(uint32_t us);
 
     ledc_channel_t channel_{};
+    ledc_channel_config_t ch_cfg_{};
     QueueHandle_t cmd_queue_{};
     uint8_t angle_rest_{0};
     uint8_t angle_press_{180};
