@@ -52,19 +52,20 @@ void Servo::task_fn(void *arg) {
             rest_us = SERVO_PULSE_MIN_US + ((SERVO_PULSE_MAX_US - SERVO_PULSE_MIN_US) * cmd.rest_pct) / 100;
             ESP_LOGI(TAG, "Press: rest_pct=%lu rest_us=%lu press_pct=%lu press_us=%lu hold=%lums",
                      cmd.rest_pct, rest_us, cmd.press_pct, press_us, cmd.hold_ms);
-            ledc_channel_config(&self->ch_cfg_);
             self->set_pulse_us(press_us);
             vTaskDelay(pdMS_TO_TICKS(cmd.hold_ms));
             self->set_pulse_us(rest_us);
             vTaskDelay(pdMS_TO_TICKS(500));
-            ledc_stop(LEDC_LOW_SPEED_MODE, self->channel_, 0);
+            self->set_pulse_us(0);
         }
     }
 }
 
 void Servo::set_pulse_us(uint32_t us) {
     // 14-bit resolution at 50Hz → 16384 ticks per 20ms period
-    if (us < SERVO_PULSE_MIN_US) {
+    if (us == 0) {
+        // no-op: duty=0 produces no pulses, servo goes limp
+    } else if (us < SERVO_PULSE_MIN_US) {
         us = SERVO_PULSE_MIN_US;
     } else if (us > SERVO_PULSE_MAX_US) {
         us = SERVO_PULSE_MAX_US;
