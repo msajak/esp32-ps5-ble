@@ -155,7 +155,7 @@ esp_err_t WebServer::api_logs_clear_handler(httpd_req_t *req) {
 }
 
 esp_err_t WebServer::api_servo_press_handler(httpd_req_t *req) {
-    uint32_t rest{}, press{}, hold{};
+    uint32_t rest{}, press{}, hold{}, sweep{};
     char buf[256];
     int ret = httpd_req_recv(req, buf, sizeof(buf) - 1);
     esp_err_t rv = ESP_OK;
@@ -179,11 +179,14 @@ esp_err_t WebServer::api_servo_press_handler(httpd_req_t *req) {
             } else {
                 rv = ESP_FAIL;
             }
+            if ((j = cJSON_GetObjectItem(root, "sweep")) && cJSON_IsNumber(j)) {
+                sweep = j->valueint;
+            }
             cJSON_Delete(root);
         }
     }
     if (rv == ESP_OK) {
-        servo.press(rest, press, hold);
+        servo.press(rest, press, hold, sweep);
         httpd_resp_set_type(req, "application/json");
         httpd_resp_sendstr(req, "{\"ok\":true,\"msg\":\"Power button pressed\"}");
     }

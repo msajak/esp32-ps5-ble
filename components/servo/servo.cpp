@@ -10,6 +10,7 @@ struct ServoCmd {
     uint32_t rest_pct;
     uint32_t press_pct;
     uint32_t hold_ms;
+    uint32_t sweep_ms;
 };
 
 void Servo::start(gpio_num_t pin, ledc_channel_t channel, ledc_timer_t timer) {
@@ -37,8 +38,8 @@ void Servo::start(gpio_num_t pin, ledc_channel_t channel, ledc_timer_t timer) {
     ESP_LOGI(TAG, "Servo on GPIO %d ready", pin);
 }
 
-void Servo::press(uint32_t rest_pct, uint32_t press_pct, uint32_t hold_ms) {
-    ServoCmd cmd{rest_pct, press_pct, hold_ms};
+void Servo::press(uint32_t rest_pct, uint32_t press_pct, uint32_t hold_ms, uint32_t sweep_ms) {
+    ServoCmd cmd{rest_pct, press_pct, hold_ms, sweep_ms};
     xQueueSend(cmd_queue_, &cmd, 0);
 }
 
@@ -50,15 +51,47 @@ void Servo::task_fn(void *arg) {
             uint32_t press_us{}, rest_us{};
             press_us = SERVO_PULSE_MIN_US + ((SERVO_PULSE_MAX_US - SERVO_PULSE_MIN_US) * cmd.press_pct) / 100;
             rest_us = SERVO_PULSE_MIN_US + ((SERVO_PULSE_MAX_US - SERVO_PULSE_MIN_US) * cmd.rest_pct) / 100;
-            ESP_LOGI(TAG, "Press: rest_pct=%lu rest_us=%lu press_pct=%lu press_us=%lu hold=%lums",
-                     cmd.rest_pct, rest_us, cmd.press_pct, press_us, cmd.hold_ms);
-            self->set_pulse_us(press_us);
+            ESP_LOGI(TAG, "Press: rest_pct=%lu rest_us=%lu press_pct=%lu press_us=%lu hold=%lums sweep=%lums",
+                     cmd.rest_pct, rest_us, cmd.press_pct, press_us, cmd.hold_ms, cmd.sweep_ms);
+
+            // Power up at rest position first (if sweep is enabled, to avoid sudden jump at start)
+            if (cmd.sweep_ms > 0) {
+                self->set_pulse_us(rest_us);
+                vTaskDelay(pdMS_TO_TICKS(150));
+            }
+
+            self->sweep(rest_us, press_us, cmd.sweep_ms);
             vTaskDelay(pdMS_TO_TICKS(cmd.hold_ms));
-            self->set_pulse_us(rest_us);
+            self->sweep(press_us, rest_us, cmd.sweep_ms);
             vTaskDelay(pdMS_TO_TICKS(500));
             self->set_pulse_us(0);
         }
     }
+}
+
+void Servo::sweep(uint32_t start_us, uint32_t end_us, uint32_t duration_ms) {
+    if (duration_ms == 0) {
+        set_pulse_us(end_us);
+        return;
+    }
+
+    const uint32_t step_interval_ms = 20; // update every 20ms
+    uint32_t steps = duration_ms / step_interval_ms;
+    if (steps == 0) {
+        set_pulse_us(end_us);
+        return;
+    }
+
+    int32_t start = (int32_t)start_us;
+    int32_t end = (int32_t)end_us;
+    int32_t diff = end - start;
+
+    for (uint32_t i = 1; i <= steps; ++i) {
+        int32_t current = start + (diff * (int32_t)i) / (int32_t)steps;
+        set_pulse_us((uint32_t)current);
+        vTaskDelay(pdMS_TO_TICKS(step_interval_ms));
+    }
+    set_pulse_us(end_us);
 }
 
 void Servo::set_pulse_us(uint32_t us) {
